@@ -50,6 +50,20 @@
     htop
   ];
 
+  # Clone nixos config repo on first boot
+  systemd.services.clone-config = {
+    description = "Clone NixOS configuration repo";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    unitConfig.ConditionPathExists = "!/home/affixpin/nixos";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "affixpin";
+      ExecStart = "${pkgs.git}/bin/git clone https://github.com/affixpin/nixos.git /home/affixpin/nixos";
+    };
+  };
+
   # Enable flakes
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
