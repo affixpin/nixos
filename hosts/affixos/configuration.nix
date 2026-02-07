@@ -32,8 +32,16 @@
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # Networking
-  networking.networkmanager.enable = true;
+  # Static IP for UTM bridge network
+  networking.useDHCP = false;
+  networking.interfaces.enp0s1 = {
+    ipv4.addresses = [{
+      address = "192.168.64.5";
+      prefixLength = 24;
+    }];
+  };
+  networking.defaultGateway = "192.168.64.1";
+  networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
 
   # System packages
   environment.systemPackages = with pkgs; [
