@@ -26,6 +26,10 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          # Rename pre-existing user files that clash with HM-managed ones
+          # instead of failing the activation. Useful when a prior HM run
+          # partially deployed files and now conflicts with new links.
+          home-manager.backupFileExtension = "hm-bak";
           home-manager.users.affixpin = import ./home/affixpin.nix;
         }
       ];
