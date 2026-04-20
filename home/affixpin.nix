@@ -74,6 +74,13 @@
       terminal = "foot";
       menu = "fuzzel";
       bars = [{ command = "waybar"; }];
+      # Per-monitor config keyed on EDID identifier (make model serial) so
+      # it tracks the physical panel, not the port it's plugged into.
+      output = {
+        "Dell Inc. DELL P2723QE 4PY9GM3" = {
+          scale = "2";
+        };
+      };
       input."type:keyboard" = {
         # Layouts cycled via Alt+Shift. Caps → Escape.
         # ctrl:swap_lwin_lctl swaps Super/Ctrl so ZMK home-row mods (Cmd on
