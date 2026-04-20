@@ -1,78 +1,117 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [
     ./hardware-configuration.nix
   ];
 
-  networking.hostName = "affixos";
-
-  # Use latest kernel for best ARM64/virtio performance on UTM
+  # Boot
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # QEMU guest support for UTM integration
-  services.qemuGuest.enable = true;
+  # Hardware
+  hardware.enableRedistributableFirmware = true;
+  hardware.cpu.amd.updateMicrocode = true;
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
 
-  # Headless - SSH access only
-  services.openssh.enable = true;
+  # Networking
+  networking.hostName = "affixos";
+  networking.networkmanager.enable = true;
 
-  # User account
+  # Audio
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    pulse.enable = true;
+    wireplumber.enable = true;
+  };
+
+  # Sway (system-level: package, session, portal integration)
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+  };
+  xdg.portal = {
+    enable = true;
+    wlr.enable = true;
+    config.sway.default = [ "wlr" "gtk" ];
+  };
+  security.polkit.enable = true;
+
+  # TTY1 autologin → user's login shell execs sway (see home/affixpin.nix)
+  services.getty.autologinUser = "affixpin";
+
+  # System-level fish: registers /etc/shells entry and sources NixOS vendor configs
+  # so PATH + completions work when fish is a login shell.
+  programs.fish.enable = true;
+
+  fonts.packages = with pkgs; [
+    dejavu_fonts
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-emoji
+    nerd-fonts.jetbrains-mono
+  ];
+
+  # SSH — key-only, no root
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
+
+  # Power / hibernate — lid-close suspends to RAM, falls back to disk after a while
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend-then-hibernate";
+    HandleLidSwitchExternalPower = "suspend-then-hibernate";
+  };
+
+  # Periodic TRIM for NVMe
+  services.fstrim.enable = true;
+
+  # USB auto-mount (used when dropping ZMK .uf2 firmware onto the nice!nano in DFU mode)
+  services.udisks2.enable = true;
+
+  # User
   users.users.affixpin = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "wheel" "networkmanager" "video" "audio" ];
+    shell = pkgs.fish;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE4uCUGlax7XEqFEJyovatfYi/A8T0tFh1hpcc60sF2B affixpin@Mac"
     ];
   };
 
-  # Passwordless sudo for wheel
-  security.sudo.wheelNeedsPassword = false;
-
-  # Timezone & locale
-  time.timeZone = "UTC";
+  # Locale
+  time.timeZone = "Europe/Lisbon";
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # Static IP for UTM bridge network
-  networking.useDHCP = false;
-  networking.interfaces.enp0s1 = {
-    ipv4.addresses = [{
-      address = "192.168.64.5";
-      prefixLength = 24;
-    }];
-  };
-  networking.defaultGateway = "192.168.64.1";
-  networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
-
-  # System packages
+  # System-wide packages (user tools live in home-manager)
   environment.systemPackages = with pkgs; [
-    vim
     git
+    vim
     htop
+    pciutils
+    usbutils
+    wget
   ];
 
-  # Clone nixos config repo on first boot
-  systemd.services.clone-config = {
-    description = "Clone NixOS configuration repo";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    unitConfig.ConditionPathExists = "!/home/affixpin/nixos";
-    serviceConfig = {
-      Type = "oneshot";
-      User = "affixpin";
-      ExecStart = "${pkgs.git}/bin/git clone https://github.com/affixpin/nixos.git /home/affixpin/nixos";
-    };
-  };
-
-  # Enable flakes
+  # Nix
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  # Nix garbage collection
   nix.gc = {
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 7d";
   };
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.11";
 }
