@@ -51,14 +51,10 @@
     '';
   };
 
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-    viAlias = true;
-    vimAlias = true;
-    withRuby = false;
-    withPython3 = false;
-  };
+  # Install neovim as a plain package rather than via programs.neovim —
+  # the HM module insists on writing xdg.configFile."nvim/init.lua", which
+  # conflicts with our out-of-store ~/.config/nvim symlink to ~/repositories/nvim.
+  home.sessionVariables.EDITOR = "nvim";
 
   programs.git = {
     enable = true;
@@ -154,6 +150,9 @@
     typescript-language-server
     nodePackages.prettier
     nodePackages.eslint_d
+
+    # Editor
+    neovim
 
     # Shell tooling
     bat
