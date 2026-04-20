@@ -71,7 +71,7 @@
     wrapperFeatures.gtk = true;
     config = {
       modifier = "Mod4";
-      terminal = "foot";
+      terminal = "ghostty";
       menu = "fuzzel";
       bars = [{ command = "waybar"; }];
       # Per-monitor config keyed on EDID identifier (make model serial) so
@@ -112,7 +112,7 @@
 
   home.packages = with pkgs; [
     # Sway userland
-    foot
+    ghostty
     waybar
     fuzzel
     mako
