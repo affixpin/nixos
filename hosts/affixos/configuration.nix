@@ -31,14 +31,17 @@
     ethernet.macAddress = "random";
   };
 
-  # Encrypted + validated DNS. "opportunistic"/"allow-downgrade" keep captive
-  # portals working; raise to "true" for strict DoT / strict DNSSEC.
+  # Encrypted + validated DNS. Point directly at DoT-capable public resolvers
+  # so we don't pay the opportunistic-DoT timeout against routers that don't
+  # support 853/TLS. DHCP-provided DNS servers are still used as fallback
+  # via systemd-resolved's built-in behavior.
   services.resolved = {
     enable = true;
     settings.Resolve = {
       DNSSEC = "allow-downgrade";
       DNSOverTLS = "opportunistic";
-      FallbackDNS = [ "1.1.1.1#one.one.one.one" "9.9.9.9#dns.quad9.net" ];
+      DNS = [ "1.1.1.1#one.one.one.one" "9.9.9.9#dns.quad9.net" ];
+      FallbackDNS = [ "1.0.0.1#one.one.one.one" "149.112.112.112#dns.quad9.net" ];
     };
   };
 
