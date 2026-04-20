@@ -161,6 +161,9 @@
     # Editor
     neovim
 
+    # AI coding assistant
+    claude-code
+
     # Shell tooling
     bat
     delta
