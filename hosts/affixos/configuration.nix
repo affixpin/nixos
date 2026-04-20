@@ -66,7 +66,7 @@
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    config.sway.default = [ "wlr" "gtk" ];
+    config.sway.default = lib.mkForce [ "wlr" "gtk" ];
   };
   security.polkit.enable = true;
 
@@ -81,7 +81,7 @@
     dejavu_fonts
     noto-fonts
     noto-fonts-cjk-sans
-    noto-fonts-emoji
+    noto-fonts-color-emoji
     nerd-fonts.jetbrains-mono
   ];
 
