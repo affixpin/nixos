@@ -210,6 +210,12 @@
 
   # Nix
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  # Allow specific unfree packages by name (narrower than allowUnfree=true).
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) [
+      "claude-code"
+    ];
   nix.gc = {
     automatic = true;
     dates = "weekly";
