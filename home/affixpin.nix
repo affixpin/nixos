@@ -15,22 +15,24 @@
     tray = "auto";
   };
 
-  # Clone personal editable configs on first activation, then symlink them from
-  # ~/.config so changes can be committed in place.
-  home.activation.cloneEditableConfigs = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
-    $DRY_RUN_CMD mkdir -p "$HOME/repositories"
-    if [ ! -e "$HOME/repositories/nvim" ]; then
-      $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/affixpin/nvim.git "$HOME/repositories/nvim"
-    fi
-    if [ ! -e "$HOME/repositories/zellij" ]; then
-      $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/affixpin/zellij.git "$HOME/repositories/zellij"
-    fi
-  '';
+  # Clone editable configs and symlink them into ~/.config. Bypasses HM's
+  # file manager entirely (mkOutOfStoreSymlink on directories tripped HM's
+  # "outside $HOME" sandbox check). Clone is tolerant of network failure so
+  # first boot before wifi is set up doesn't break activation.
+  home.activation.linkEditableConfigs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    clone_if_missing() {
+      local repo="$1" dst="$2"
+      if [ ! -e "$dst" ]; then
+        $DRY_RUN_CMD ${pkgs.git}/bin/git clone "$repo" "$dst" || echo "WARN: clone $repo failed; skipping" >&2
+      fi
+    }
 
-  xdg.configFile."nvim".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repositories/nvim";
-  xdg.configFile."zellij".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repositories/zellij";
+    $DRY_RUN_CMD mkdir -p "$HOME/repositories" "$HOME/.config"
+    clone_if_missing https://github.com/affixpin/nvim.git   "$HOME/repositories/nvim"
+    clone_if_missing https://github.com/affixpin/zellij.git "$HOME/repositories/zellij"
+    $DRY_RUN_CMD ln -sfT "$HOME/repositories/nvim"   "$HOME/.config/nvim"
+    $DRY_RUN_CMD ln -sfT "$HOME/repositories/zellij" "$HOME/.config/zellij"
+  '';
 
   # Auto-exec sway on TTY1 after autologin
   programs.fish = {
