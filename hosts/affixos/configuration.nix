@@ -173,6 +173,14 @@
   # Only wheel members can run sudo; non-wheel users cannot escalate at all.
   security.sudo.execWheelOnly = true;
 
+  # Home-manager activation clones editable configs from GitHub; make sure
+  # the network + DNS are up first. Soft ordering (wants), so a fully
+  # offline boot still proceeds after network-online times out.
+  systemd.services.home-manager-affixpin = {
+    after = [ "network-online.target" "nss-lookup.target" ];
+    wants = [ "network-online.target" "nss-lookup.target" ];
+  };
+
   # USB auto-mount (used when dropping ZMK .uf2 firmware onto the nice!nano in DFU mode)
   services.udisks2.enable = true;
 
