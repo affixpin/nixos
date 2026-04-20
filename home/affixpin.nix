@@ -93,9 +93,10 @@
       exec blueman-applet
       exec nm-applet --indicator
       exec swayidle -w \
-        timeout 300 'swaylock -f -c 000000' \
-        timeout 600 'systemctl suspend' \
-        before-sleep 'swaylock -f -c 000000'
+        timeout 60 'swaylock -f -c 000000' \
+        timeout 300 'systemctl suspend' \
+        before-sleep 'swaylock -f -c 000000' \
+        lock 'swaylock -f -c 000000'
 
       # Screenshots — matches ZMK mac_ss4/mac_ss5 after ctrl:swap_lwin_lctl.
       # Saves to ~/Pictures/Screenshots AND copies to the clipboard.
@@ -120,6 +121,7 @@
     pavucontrol
     networkmanagerapplet
     chromium
+    keepassxc
 
     # Terminal multiplexer used by the zellij-nav.nvim plugin
     zellij
