@@ -21,6 +21,10 @@
             content = {
               type = "luks";
               name = "cryptroot";
+              # Read passphrase from a file created on the installer before
+              # running disko. Only used at install-time; at every boot the
+              # initramfs prompts interactively as normal.
+              passwordFile = "/tmp/luks-setup.key";
               settings.allowDiscards = true;
               extraOpenArgs = [ "--allow-discards" ];
               content = {
