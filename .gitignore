@@ -1,6 +1,7 @@
 # Nix build results
 result
 result-*
+.env
 
 # direnv
 .direnv/
